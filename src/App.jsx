@@ -10,14 +10,20 @@ function App() {
   const [isLoading,setIsLoading]=useState(false);
   const [error, setError] = useState("");
 
-  useEffect(()=>{
-    getPokemonList();
-  },[]);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPokemon, setTotalPokemon] = useState(0);
+  const pageSize = 50;
 
-  const getPokemonList = async() => {
+  useEffect(()=>{
+    getPokemonList(currentPage);
+  },[currentPage]);
+
+  const getPokemonList = async(page) => {
+    const offset = (page - 1)*pageSize;
     try{
       setIsLoading(true);
-    const response =  await axios.get("https://pokeapi.co/api/v2/pokemon?limit=1300");
+    const response =  await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=${pageSize}&offset=${offset}`);
 
     const detailedPokemonData = await Promise.all(
       response.data.results.map(async(pokemon)=>{
@@ -26,6 +32,7 @@ function App() {
       })
     );
     setPokemonList(detailedPokemonData);
+    setTotalPokemon(response.data.count);
     setError("");
     setSearchPokemon(null);
     console.log("detailedPokemon data", detailedPokemonData);
@@ -61,6 +68,20 @@ function App() {
     setError("Pokemon not found. Please try again.");
   }
  }
+
+ // pagination control (Next and Previous)
+
+ const handleNextPage = () => {
+  if(currentPage*pageSize < totalPokemon){
+    setCurrentPage(currentPage+1);
+  }
+ };
+
+ const handlePrevPage = () => {
+  if(currentPage>1){
+    setCurrentPage(currentPage-1);
+  }
+ };
 
   return (
   
@@ -110,7 +131,7 @@ function App() {
     <div className="pokemon-list">
       <h2>All Pokemons</h2>
       <div className="pokedex">
-        {isLoading&&<h4>loading...</h4>}
+        {isLoading&&<h4>Loading...</h4>}
         <ul>
           {!isLoading &&
             pokemonList.map((pokemon)=>(
@@ -129,6 +150,16 @@ function App() {
       </div>
 
     </div>}
+    {/* Pagination control  */}
+    <div className="pagination">
+          <button onClick={handlePrevPage} disabled={currentPage === 1}>
+            Previous
+          </button>
+      <span className="pageNum">Page:{currentPage}</span>
+      <button onClick={handleNextPage} disabled={currentPage*pageSize >= totalPokemon}>
+        Next
+      </button>
+    </div>
     
     </div>
     

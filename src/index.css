@@ -66,6 +66,14 @@ h2{
 h4{
   color:black;
 }
+.pagination{
+  margin:20px;
+}
+.pageNum{
+  color:darkslategrey;
+  margin-left:8px;
+  margin-right:8px;
+}
 
 button {
   border-radius: 8px;
