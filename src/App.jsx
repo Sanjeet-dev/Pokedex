@@ -6,7 +6,8 @@ function App() {
   const [pokemonList, setPokemonList] = useState([]);
   const [showSearchInput, setShowSearchInput] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [pokemon, setPokemon] = useState(null);
+  const [searchPokemon, setSearchPokemon] = useState(null);
+  const [isLoading,setIsLoading]=useState(false);
   const [error, setError] = useState("");
 
   useEffect(()=>{
@@ -15,6 +16,7 @@ function App() {
 
   const getPokemonList = async() => {
     try{
+      setIsLoading(true);
     const response =  await axios.get("https://pokeapi.co/api/v2/pokemon?limit=1300");
 
     const detailedPokemonData = await Promise.all(
@@ -24,53 +26,58 @@ function App() {
       })
     );
     setPokemonList(detailedPokemonData);
+    setError("");
+    setSearchPokemon(null);
     console.log("detailedPokemon data", detailedPokemonData);
     }
     
     catch(err){
       console.log("Some issue occurred in fetching", err);
       setError("Failed to load pokemon data");
+    }finally{
+      setIsLoading(false);
     }
 
-  }
-  if(error){
-    return <p>{error}</p>;
   }
 
   // Fetch Pokemon based on search query:
-  const handleSearch = async() => {
-    try{
-      const response = await fetch("https://pokeapi.co/api/v2/pokemon/${searchQuery.toLowerCase()}");
-      const data = await response.json();
+ const handleSearch = () => {
+  const trimmedQuery = searchQuery.trim().toLowerCase();
 
-      const detailedPokemonData = await Promise.all(
-        data.results.map(async(pokemon)=>{
-          const res = await fetch(pokemon.url);
-          return res.json();
-        })
-      );
-      setPokemonList(detailedPokemonData);
-      setError("");
-    } catch(error){
-      setPokemon(null);
-      setError("Pokemon not found. Please try again.");
-    }
+  if(!trimmedQuery){
+    setError("Please enter a valid Pokemon name");
+    return;
   }
+  const filteredPokemon =  pokemonList.find(pokemon =>
+    pokemon.name.toLowerCase() === trimmedQuery
+  );
+
+  if(filteredPokemon){
+    setSearchPokemon(filteredPokemon);
+    setError("");
+    setSearchQuery("");
+  }else{
+    setSearchPokemon(null);
+    setError("Pokemon not found. Please try again.");
+  }
+ }
 
   return (
   
     <div className="App">
+    
     <div className="introToApp">
     <h1>Pokedex</h1>
     <div className="btns">
-    <button>Pokedex</button>
+    <button onClick={getPokemonList}>Pokedex</button>
     <button onClick={()=> setShowSearchInput((prev)=> !prev)}>
     {showSearchInput ? "Hide Search":"Search"}
     </button>
     
     { showSearchInput && (
-      <div>
+      <div className="inputbox">
         <input 
+        className="searchBox"
         type="text"
         placeholder = "Search Pokemon"
         value={searchQuery}
@@ -80,28 +87,35 @@ function App() {
       
       </div>
     )}
-    {error && <p>{err}</p>}
-    {pokemon && (
-      <div>
-        <h2>{pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</h2>
-        {(pokemon.sprites && pokemon.sprites.front_default)?
-                (<img 
-                src={pokemon.sprites.front_default}  
-                alt={pokemon.name} />): (<p>No Image Available</p>)
+    </div>
+    </div>
+    {showSearchInput && <div className="showSearchPokemon">
+    {error && <p>{error}</p>}
+    {searchPokemon && (
+      <div className="foundPokemon">
+        {(searchPokemon.sprites?.front_default)?
+                (<img className="searchPokemon"
+                src={searchPokemon.sprites.front_default}  
+                alt={searchPokemon.name} />): (<p>No Image Available</p>)
         }
-        <p>Type: {pokemon.types.map(type => type.type.name).join(", ")}</p>
+        <span>{searchPokemon.name.charAt(0).toUpperCase() + searchPokemon.name.slice(1)}</span>
+        <p>Height: {searchPokemon.height}</p>
+        <p>Weight: {searchPokemon.weight}</p>
+        <p>Type: {searchPokemon.types.map(type => type.type.name).join(", ")}</p>
       </div>
     )}
-    </div>
-    </div>
+    </div>}
+
+    { !searchPokemon &&
     <div className="pokemon-list">
       <h2>All Pokemons</h2>
       <div className="pokedex">
+        {isLoading&&<h4>loading...</h4>}
         <ul>
-          {
+          {!isLoading &&
             pokemonList.map((pokemon)=>(
               <li key={pokemon.id}>
-                {(pokemon.sprites && pokemon.sprites.front_default)?
+                {(pokemon.sprites?.front_default)?
                 (<img 
                 src={pokemon.sprites.front_default}  
                 alt={pokemon.name} />): (<p>No Image Available</p>)
@@ -114,7 +128,8 @@ function App() {
         </ul>
       </div>
 
-    </div>
+    </div>}
+    
     </div>
     
   )

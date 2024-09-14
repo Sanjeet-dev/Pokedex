@@ -63,6 +63,9 @@ h2{
   line-height: 1.1;
   color:black;
 }
+h4{
+  color:black;
+}
 
 button {
   border-radius: 8px;
@@ -113,7 +116,34 @@ button:focus-visible {
   font-size:17px;
   letter-spacing:1px;
 }
+.showSearchPokemon{
+  height:20rem;
+  width:20rem;
+  position: relative;
+  top:5%;
+  left:38%;
+  padding: 10px;
+  background-color: #f2f2f2;
+  border-radius: 4px;
+  text-align: center;
+  color:black;
+  box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
 
+.searchPokemon{
+  height:150px;
+  width:150px;
+  margin-left:3.7rem;
+  margin-bottom:10px;
+}
+
+.searchBox{
+  outline:none;
+  font-family: "Press Start 2P", system-ui, sans-serif;
+  height:3rem;
+  width:10rem;
+  padding-left:10px;
+}
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
